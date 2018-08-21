@@ -155,7 +155,7 @@ class Window(QDialog):
         #self.HeadGroupBoxLayout.addWidget(self.myFig,1,1)
         self.HeadGroupBox.setLayout(self.HeadGroupBoxLayout)
         self.HeadGroupBox2.setLayout(self.PlotGroupBoxLayout)
-        self.Down_layout.addWidget(self.list_view,0,0)
+        self.Down_layout.addWidget(self.list_view)
         self.PlotGroupBoxLayout.addWidget(self.list_view,0,0)
         
         #splitter = QSplitter()
