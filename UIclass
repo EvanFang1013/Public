@@ -1,6 +1,31 @@
-class Form(QMainWindow):
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Aug 22 22:10:52 2018
+
+@author: EvanFang
+"""
+import Adafruit_ADS1x15
+import sys
+from PyQt5.QtGui  import *
+from PyQt5.QtCore import *
+#from PyQt5.QtWidgets import QApplication, QDialog,QMainWindow
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import *
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+import threading
+from queue import Queue
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+#from matplotlib import animation
+#from matplotlib.animation import TimedAnimation
+from collections import deque
+
+
+class Window(QMainWindow):
     def __init__(self, parent=None):
-        super(Form, self).__init__(parent)
+        super(Window, self).__init__(parent)
         self.setWindowTitle('A2D Data connect')
         self.main_frame = QWidget()
         
@@ -54,6 +79,7 @@ class Form(QMainWindow):
         
         self.Inputdata = QGroupBox(u'\tChoose channel')
         self.Inputdata_Layout = QGridLayout()
+        self.SampleEdit = QLineEdit()
         self.list_view = QListView()
         self.list_view.setMinimumSize(400, 400)
         self.model = QStandardItemModel(self.list_view)
@@ -69,6 +95,7 @@ class Form(QMainWindow):
             self.model.appendRow(item)
         self.list_view.setModel(self.model)
         self.Inputdata_Layout.addWidget(self.list_view)
+        self.Inputdata_Layout.addWidget(self.SampleEdit)
         self.Inputdata.setLayout(self.Inputdata_Layout)
         
         self.plotbox = QGroupBox(u'\tShow image')
@@ -77,13 +104,18 @@ class Form(QMainWindow):
         self.plotbox.setLayout(self.plotbox_Layout)
         
         self.hbox = QHBoxLayout()
-        self.hbox.addLayout(self.Inputdata)
-        self.hbox.addLayout(self.plotbox)
+        self.hbox.addWidget(self.Inputdata)
+        self.hbox.addWidget(self.plotbox)
         
         self.Vbox = QVBoxLayout()
-        self.Vbox.addLayout(self.TopGroupBox)
+        self.Vbox.addWidget(self.TopGroupBox)
         self.Vbox.addLayout(self.hbox)
         self.main_frame.setLayout(self.Vbox)
         self.setCentralWidget(self.main_frame)
-        self.initUI()
-                            
+        #self.initUI()
+        
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    win = Window()
+    win.show() 
+    sys.exit(app.exec_())        
