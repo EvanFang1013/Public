@@ -1,0 +1,89 @@
+class Form(QMainWindow):
+    def __init__(self, parent=None):
+        super(Form, self).__init__(parent)
+        self.setWindowTitle('A2D Data connect')
+        self.main_frame = QWidget()
+        
+        self.dpi = 100
+        self.fig = Figure((5.0, 5.0), dpi=self.dpi)
+        self.canvas = FigureCanvas(self.fig)
+        self.canvas.setParent(self.main_frame)
+        self.axes = self.fig.add_subplot(111)
+        
+        self.MyTable1 = QTableWidget(1,4)
+        self.MyTable1.setMaximumSize(400,65)
+        self.MyTable2 = QTableWidget(1,4)
+        self.MyTable2.setMaximumSize(400,65)
+        self.MyTable3 = QTableWidget(1,4)
+        self.MyTable3.setMaximumSize(400,65)
+        self.MyTable4 = QTableWidget(1,4)
+        self.MyTable4.setMaximumSize(400,65)
+        self.MyTable1.setColumnWidth(0, 90);
+        self.MyTable1.setColumnWidth(1, 90);
+        self.MyTable1.setColumnWidth(2, 90);
+        self.MyTable1.setColumnWidth(3, 90);
+        self.MyTable2.setColumnWidth(0, 90);
+        self.MyTable2.setColumnWidth(1, 90);
+        self.MyTable2.setColumnWidth(2, 90);
+        self.MyTable2.setColumnWidth(3, 90);
+        self.MyTable3.setColumnWidth(0, 90);
+        self.MyTable3.setColumnWidth(1, 90);
+        self.MyTable3.setColumnWidth(2, 90);
+        self.MyTable3.setColumnWidth(3, 90);
+        self.MyTable4.setColumnWidth(0, 90);
+        self.MyTable4.setColumnWidth(1, 90);
+        self.MyTable4.setColumnWidth(2, 90);
+        self.MyTable4.setColumnWidth(3, 90);
+        
+        self.Button1=QPushButton("Channel 1")
+        self.Button2=QPushButton("Channel 2")
+        self.Button3=QPushButton("Channel 3")
+        self.Button4=QPushButton("Channel 4")
+        
+        self.TopGroupBox = QGroupBox(u'\tChannel')
+        self.TopGroupBox_Layout = QGridLayout()
+        self.TopGroupBox_Layout.addWidget(self.Button1,0,1)
+        self.TopGroupBox_Layout.addWidget(self.Button2,0,2)
+        self.TopGroupBox_Layout.addWidget(self.Button3,0,3)
+        self.TopGroupBox_Layout.addWidget(self.Button4,0,4)
+        self.TopGroupBox_Layout.addWidget(self.MyTable1,1,1)
+        self.TopGroupBox_Layout.addWidget(self.MyTable2,1,2)
+        self.TopGroupBox_Layout.addWidget(self.MyTable3,1,3)
+        self.TopGroupBox_Layout.addWidget(self.MyTable4,1,4)
+        self.TopGroupBox.setLayout(self.TopGroupBox_Layout)
+        
+        self.Inputdata = QGroupBox(u'\tChoose channel')
+        self.Inputdata_Layout = QGridLayout()
+        self.list_view = QListView()
+        self.list_view.setMinimumSize(400, 400)
+        self.model = QStandardItemModel(self.list_view)
+        channels = [
+            'channel1', 
+            'channel2', 
+            'channel3', 
+            'channel4', 
+            ]
+        for channel in channels:
+            item = QStandardItem(channel)
+            item.setCheckable(True)
+            self.model.appendRow(item)
+        self.list_view.setModel(self.model)
+        self.Inputdata_Layout.addWidget(self.list_view)
+        self.Inputdata.setLayout(self.Inputdata_Layout)
+        
+        self.plotbox = QGroupBox(u'\tShow image')
+        self.plotbox_Layout = QGridLayout()
+        self.plotbox_Layout.addWidget(self.canvas)
+        self.plotbox.setLayout(self.plotbox_Layout)
+        
+        self.hbox = QHBoxLayout()
+        self.hbox.addLayout(self.Inputdata)
+        self.hbox.addLayout(self.plotbox)
+        
+        self.Vbox = QVBoxLayout()
+        self.Vbox.addLayout(self.TopGroupBox)
+        self.Vbox.addLayout(self.hbox)
+        self.main_frame.setLayout(self.Vbox)
+        self.setCentralWidget(self.main_frame)
+        self.initUI()
+                            
