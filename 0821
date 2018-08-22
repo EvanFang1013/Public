@@ -1,1 +1,22 @@
+import RPi.GPIO as GPIO
+import time
 
+GPIO.setmode(GPIO.BCM)
+
+GPIO.setup(18, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+GPIO.setup(23, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+
+while True:
+    marker1 = GPIO.input(18)
+    marker2 = GPIO.input(23)
+    
+    if:
+        marker1 == True and marker2 == True:
+    elif:
+        marker1 == True and marker2 == False:
+
+    elif:
+        marker1 == False and marker2 == True:
+
+    else:
+        marker1 == False and marker2 == False:
