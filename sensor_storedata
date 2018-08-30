@@ -1,0 +1,114 @@
+import RPi.GPIO as GPIO
+import time
+import Adafruit_ADS1x15
+import threading
+from queue import Queue
+import datetime
+
+event = Queue()
+inttime = time.time()
+
+class Analog_Value_Thread (threading.Thread):
+    def __init__(self):
+      threading.Thread.__init__(self)
+      print('initial')
+      self.GAIN=2/3    
+
+    def run(self):
+      print('Analog Sensor get')      
+      adc =Adafruit_ADS1x15.ADS1115(0x48)
+      
+      while True : 
+        values = adc.read_adc(0, gain=self.GAIN)
+        #print(values)
+
+        event.put(values)
+        #time.sleep(0.5)
+        
+class Digital_value():
+    def __init__(self):
+        GPIO.setmode(GPIO.BCM)
+
+        GPIO.setup(18, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        GPIO.setup(23, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        self.ValueSet=list([])
+        self.timeset=list([])
+
+        while True:
+            marker1 = GPIO.input(18)
+            marker2 = GPIO.input(23)
+            Data = event.get()
+            
+            
+            Scale1 = Data/32767
+            #print(Scale1)
+            Voltage = 6.144*Scale1
+            #scale2
+            Scale2= (Voltage-0.87)/(4.35-0.87)
+            Current= Scale2*16 + 4
+            #print(Current)
+        
+            if (marker1 == True and marker2 == True):
+                print("level 2 = 1 and 1")
+                element=100
+            elif (marker1 == True and marker2 == False):
+                print("level 1 = 1 and 0")
+                element=10
+            elif (marker1 == False and marker2 == True):
+                print("level 3 = 0 and 1")
+                element=1000
+            elif (marker1 == False and marker2 == False):
+                print("level 4 = 0 and 0")
+                element=1000000
+            
+            
+            ppm=(Current-4)/16*element
+            if (ppm>1000):
+                ppm = 1000
+            ppm = round(ppm, 4)
+            self.ValueSet.append(ppm)
+            #print(ValueSet)
+            endtime=time.time()-inttime
+            endtime = round(endtime, 2)
+            self.timeset.append(endtime)
+            self.SaveValueToFile(self.timeset,self.ValueSet)
+            if( endtime)>300:
+                break
+            print( ppm )     
+            print('-' * 15)
+            time.sleep(0.5)
+            
+    def SaveValueToFile(self,endtime,data):
+        Timedate = datetime.datetime.now()
+        column="Time"+","+"ppm\n"
+        cw = open("Dataset.csv",'w')
+        cw.write(column)
+        print(type(data))
+        timestore=list(endtime)
+        datastore=list(data)
+        
+        print(timestore,datastore)
+        
+        
+        
+        for i in range(len(data)):
+            dataset=str(timestore[i])+","+str(datastore[i])+"\n"#
+            cw.write(dataset)
+            
+        #self.ValueSet.clear()
+        #self.timeset.clear()
+
+                
+        
+        
+        
+
+if __name__ == '__main__':
+    AData = Analog_Value_Thread()
+    AData.start()
+    Digital_value()
+    
+
+    
+
+
