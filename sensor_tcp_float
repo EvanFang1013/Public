@@ -1,0 +1,123 @@
+import RPi.GPIO as GPIO
+import time
+import Adafruit_ADS1x15
+import threading
+from queue import Queue
+import sys
+import modbus_tk
+import modbus_tk.modbus as modbus
+import modbus_tk.defines as cst
+import modbus_tk.modbus_tcp as modbus_tcp
+import configparser
+import logging
+import struct
+
+
+
+logger=modbus_tk.utils.create_logger(name="console",record_format="%(message)s")
+event = Queue()
+
+class Analog_Value_Thread (threading.Thread):
+    def __init__(self):
+      threading.Thread.__init__(self)
+      print('initial')
+      self.GAIN=2/3    
+
+    def run(self):
+      print('Analog Sensor get')      
+      adc =Adafruit_ADS1x15.ADS1115(0x48)
+      while True : 
+        values = adc.read_adc(0, gain=self.GAIN)
+        event.put(values)
+    
+
+        
+class Digital_value (threading.Thread):
+    def __init__(self,_slaveid,_localip,_port,_fuc):
+        threading.Thread.__init__(self)
+        
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(18, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        GPIO.setup(23, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        try:
+        #Create the server
+            
+            #server = modbus_tcp.TcpServer(address=_localip,port=_port)
+            self.server = modbus_tcp.TcpServer()
+            
+            logger.info("running...")
+##            logger.info("enter 'quit' for closing the server")
+                  
+            self.server.start()
+            print ('server start..')
+            self.slave_1 = self.server.add_slave(_slaveid)
+            self.slave_1.add_block('ro', cst.HOLDING_REGISTERS, 0, 100)
+##            self.slave_1.add_block('0', _fuc, 0, 100)
+            senreader=Analog_Value_Thread()
+            senreader.start()
+        except: 
+            print('server create fail')
+            self.server.stop()
+            self.server._do_exit()
+            
+    def run(self):   
+        while True:
+            marker1 = GPIO.input(18)
+            marker2 = GPIO.input(23)
+            Data = event.get()
+            Scale1 = Data/32767
+            #print(Scale1)
+            Voltage = 6.144*Scale1
+            Scale2= (Voltage-0.87)/(4.35-0.87)
+            Current= Scale2*16 + 4
+            #print(Current)
+        
+            if (marker1 == True and marker2 == True):
+                print("level 2 = 1 and 1")
+                element=100
+            elif (marker1 == True and marker2 == False):
+                print("level 1 = 1 and 0")
+                element=10
+            elif (marker1 == False and marker2 == True):
+                print("level 3 = 0 and 1")
+                element=1000
+            elif (marker1 == False and marker2 == False):
+                print("level 4 = 0 and 0")
+                element=1000000
+            
+            
+            ppm=(Current-4)/16*element
+            if (ppm>1000):
+                ppm = 1000
+            ppm = round(ppm,4)
+##            print( ppm )
+            self.mb_set_float(0, ppm)
+            time.sleep(0.5)            
+    #folat send data  
+            
+    def mb_set_float(self,addr, val):
+        j = struct.unpack('>HH',struct.pack('>f', val))
+        self.slave_1.set_values('ro', addr, j)
+        logger.info(val)
+          
+if __name__ == '__main__':
+    
+    
+    cfg=configparser.ConfigParser()
+    cfg.read("/home/pi/Desktop/O2sensor/config/modbus_slave.conf")
+    localip=cfg.get("SLAVE","IP")
+    port=cfg.get("SLAVE","PORT")
+    slaveid=cfg.getint("SLAVE","SLAVEID")
+    funcode=cfg.getint("SLAVE","FUNCTION")
+    ThreadD=Digital_value(slaveid,localip,port,funcode)
+    ThreadD.start()
+    
+    
+    
+
+    
+
+    
+
+
+
